@@ -16,20 +16,35 @@ void npb_halt(npb_t* pb);
 void npb_ipush(npb_t* pb, int32_t value);
 void npb_dpush(npb_t* pb, double value);
 void npb_pop(npb_t* pb);
+void npb_dup(npb_t* pb, int32_t offset);
 void npb_print(npb_t* pb);
 void npb_iadd(npb_t* pb);
 void npb_isub(npb_t* pb);
 void npb_imul(npb_t* pb);
 void npb_idiv(npb_t* pb);
+void npb_ilt(npb_t* pb);
+void npb_igt(npb_t* pb);
+void npb_ilte(npb_t* pb);
+void npb_igte(npb_t* pb);
+void npb_dadd(npb_t* pb);
+void npb_dsub(npb_t* pb);
+void npb_dmul(npb_t* pb);
+void npb_ddiv(npb_t* pb);
+void npb_dlt(npb_t* pb);
+void npb_dgt(npb_t* pb);
+void npb_dlte(npb_t* pb);
+void npb_dgte(npb_t* pb);
+void npb_br(npb_t* pb, int32_t addr);
+void npb_brit(npb_t* pb, int32_t addr);
 
 #define STACK_CAP 1024
 
 typedef enum {
-    TRAP_UNREACHABLE,
     TRAP_OK,
     TRAP_HALT,
     TRAP_STACK_OVERFLOW,
     TRAP_STACK_UNDERFLOW,
+    TRAP_UNKNOWN_OPCODE,
 } ntrap_t;
 
 typedef enum {
@@ -37,11 +52,26 @@ typedef enum {
     INS_IPUSH,
     INS_DPUSH,
     INS_POP,
+    INS_DUP,
     INS_PRINT,
     INS_IADD,
     INS_ISUB,
     INS_IMUL,
     INS_IDIV,
+    INS_ILT,
+    INS_IGT,
+    INS_ILTE,
+    INS_IGTE,
+    INS_DADD,
+    INS_DSUB,
+    INS_DMUL,
+    INS_DDIV,
+    INS_DLT,
+    INS_DGT,
+    INS_DLTE,
+    INS_DGTE,
+    INS_BR,
+    INS_BRIT,
 } ninstruction_t;
 
 typedef struct {

@@ -62,6 +62,16 @@ void npb_pop(npb_t* pb)
     pb->program[pb->program_len++] = INS_POP;
 }
 
+void npb_dup(npb_t* pb, int32_t offset)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_DUP;
+
+    memcpy(pb->program + pb->program_len, &offset, sizeof(offset));
+    pb->program_len += sizeof(offset);
+}
+
 void npb_print(npb_t* pb)
 {
     RESIZE_IF_NEEDED();
@@ -97,6 +107,110 @@ void npb_idiv(npb_t* pb)
     pb->program[pb->program_len++] = INS_IDIV;
 }
 
+void npb_ilt(npb_t* pb)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_ILT;
+}
+
+void npb_igt(npb_t* pb)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_IGT;
+}
+
+void npb_ilte(npb_t* pb)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_ILTE;
+}
+
+void npb_igte(npb_t* pb)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_IGTE;
+}
+
+void npb_dadd(npb_t* pb)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_DADD;
+}
+
+void npb_dsub(npb_t* pb)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_DSUB;
+}
+
+void npb_dmul(npb_t* pb)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_DMUL;
+}
+
+void npb_ddiv(npb_t* pb)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_DDIV;
+}
+
+void npb_dlt(npb_t* pb)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_DLT;
+}
+
+void npb_dgt(npb_t* pb)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_DGT;
+}
+
+void npb_dlte(npb_t* pb)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_DLTE;
+}
+
+void npb_dgte(npb_t* pb)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_DGTE;
+}
+
+void npb_br(npb_t* pb, int32_t addr)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_BR;
+
+    memcpy(pb->program + pb->program_len, &addr, sizeof(addr));
+    pb->program_len += sizeof(addr);
+}
+
+void npb_brit(npb_t* pb, int32_t addr)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_BRIT;
+
+    memcpy(pb->program + pb->program_len, &addr, sizeof(addr));
+    pb->program_len += sizeof(addr);
+}
+
 #define FETCH(__type)                                           \
     ({                                                          \
         __type value;                                           \
@@ -115,6 +229,29 @@ void npb_idiv(npb_t* pb)
         push(vm, value_from_int(result));                       \
         return TRAP_OK;                                         \
     }                                                           \
+
+#define DOUBLE_COMP(__op)                                       \
+    {                                                           \
+        if (vm->sp < 1)                                         \
+            return TRAP_STACK_UNDERFLOW;                        \
+        double b = value_as_double(pop(vm));                    \
+        double a = value_as_double(pop(vm));                    \
+        int32_t result = a __op  b;                             \
+        push(vm, value_from_int(result));                       \
+        return TRAP_OK;                                         \
+    }                                                           \
+
+#define DOUBLE_BINOP(__op)                                      \
+    {                                                           \
+        if (vm->sp < 1)                                         \
+            return TRAP_STACK_UNDERFLOW;                        \
+        double b = value_as_double(pop(vm));                    \
+        double a = value_as_double(pop(vm));                    \
+        double result = a __op  b;                              \
+        push(vm, value_from_double(result));                    \
+        return TRAP_OK;                                         \
+    }                                                           \
+
 
 void noice_init(noice_t* vm)
 {
@@ -144,8 +281,8 @@ void noice_run(noice_t* vm)
 {
     while (true) {
         switch (evaluate(vm)) {
-            case TRAP_UNREACHABLE:
-                fprintf(stderr, "ERROR: unreachable\n");
+            case TRAP_UNKNOWN_OPCODE:
+                fprintf(stderr, "ERROR: unknown opcode: 0x%X\n", vm->program[vm->ip - 1]);
                 return;
             case TRAP_HALT:
                 return;
@@ -184,7 +321,19 @@ ntrap_t evaluate(noice_t* vm)
             return TRAP_OK;
         }
         case INS_POP: {
+            if (vm->sp < 0)
+                return TRAP_STACK_UNDERFLOW;
+
             pop(vm);
+            return TRAP_OK;
+        }
+        case INS_DUP: {
+            if (vm->sp >= STACK_CAP)
+                return TRAP_STACK_OVERFLOW;
+
+            int32_t offset = FETCH(int32_t);
+
+            push(vm, vm->stack[vm->sp - offset]);
             return TRAP_OK;
         }
         case INS_PRINT: {
@@ -198,8 +347,36 @@ ntrap_t evaluate(noice_t* vm)
         case INS_ISUB: INTEGER_BINOP(-);
         case INS_IMUL: INTEGER_BINOP(*);
         case INS_IDIV: INTEGER_BINOP(/);
+        case INS_ILT:  INTEGER_BINOP(<);
+        case INS_IGT:  INTEGER_BINOP(>);
+        case INS_ILTE: INTEGER_BINOP(<=);
+        case INS_IGTE: INTEGER_BINOP(>=);
+        case INS_DADD: DOUBLE_BINOP(+);
+        case INS_DSUB: DOUBLE_BINOP(-);
+        case INS_DMUL: DOUBLE_BINOP(*);
+        case INS_DDIV: DOUBLE_BINOP(/);
+        case INS_DLT:  DOUBLE_COMP(<);
+        case INS_DGT:  DOUBLE_COMP(>);
+        case INS_DLTE: DOUBLE_COMP(<=);
+        case INS_DGTE: DOUBLE_COMP(>=);
+        case INS_BR: {
+            int32_t addr = FETCH(int32_t);
+            vm->ip = addr;
+            return TRAP_OK;
+        }
+        case INS_BRIT: {
+            if (vm->sp < 0)
+                return TRAP_STACK_UNDERFLOW;
+
+            int32_t addr = FETCH(int32_t);
+
+            if (value_as_int(pop(vm)))
+                vm->ip = addr;
+
+            return TRAP_OK;
+        }
         default: {
-            return TRAP_UNREACHABLE;
+            return TRAP_UNKNOWN_OPCODE;
         }
     }
 }
