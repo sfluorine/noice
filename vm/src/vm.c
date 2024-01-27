@@ -107,6 +107,20 @@ void npb_idiv(npb_t* pb)
     pb->program[pb->program_len++] = INS_IDIV;
 }
 
+void npb_ieq(npb_t* pb)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_IEQ;
+}
+
+void npb_ineq(npb_t* pb)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_INEQ;
+}
+
 void npb_ilt(npb_t* pb)
 {
     RESIZE_IF_NEEDED();
@@ -163,6 +177,20 @@ void npb_ddiv(npb_t* pb)
     pb->program[pb->program_len++] = INS_DDIV;
 }
 
+void npb_deq(npb_t* pb)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_DEQ;
+}
+
+void npb_dneq(npb_t* pb)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_DNEQ;
+}
+
 void npb_dlt(npb_t* pb)
 {
     RESIZE_IF_NEEDED();
@@ -211,9 +239,29 @@ void npb_brit(npb_t* pb, int32_t addr)
     pb->program_len += sizeof(addr);
 }
 
+void npb_call(npb_t* pb, int32_t addr, int32_t num_args)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_CALL;
+
+    memcpy(pb->program + pb->program_len, &addr, sizeof(addr));
+    pb->program_len += sizeof(addr);
+
+    memcpy(pb->program + pb->program_len, &num_args, sizeof(num_args));
+    pb->program_len += sizeof(num_args);
+}
+
+void npb_ret(npb_t* pb)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_RET;
+}
+
 #define FETCH(__type)                                           \
     ({                                                          \
-        __type value;                                           \
+        __type value = 0;                                       \
         memcpy(&value, vm->program + vm->ip, sizeof(__type));   \
         vm->ip += sizeof(__type);                               \
         value;                                                  \
@@ -257,6 +305,8 @@ void noice_init(noice_t* vm)
 {
     vm->program = NULL;
     vm->program_len = 0;
+
+    vm->ip = 0;
 
     vm->sp = -1;
     vm->fp = -1;
@@ -347,6 +397,8 @@ ntrap_t evaluate(noice_t* vm)
         case INS_ISUB: INTEGER_BINOP(-);
         case INS_IMUL: INTEGER_BINOP(*);
         case INS_IDIV: INTEGER_BINOP(/);
+        case INS_IEQ:  INTEGER_BINOP(==);
+        case INS_INEQ: INTEGER_BINOP(!=);
         case INS_ILT:  INTEGER_BINOP(<);
         case INS_IGT:  INTEGER_BINOP(>);
         case INS_ILTE: INTEGER_BINOP(<=);
@@ -355,6 +407,8 @@ ntrap_t evaluate(noice_t* vm)
         case INS_DSUB: DOUBLE_BINOP(-);
         case INS_DMUL: DOUBLE_BINOP(*);
         case INS_DDIV: DOUBLE_BINOP(/);
+        case INS_DEQ:  DOUBLE_COMP(==);
+        case INS_DNEQ: DOUBLE_COMP(!=);
         case INS_DLT:  DOUBLE_COMP(<);
         case INS_DGT:  DOUBLE_COMP(>);
         case INS_DLTE: DOUBLE_COMP(<=);
@@ -372,6 +426,45 @@ ntrap_t evaluate(noice_t* vm)
 
             if (value_as_int(pop(vm)))
                 vm->ip = addr;
+
+            return TRAP_OK;
+        }
+        case INS_CALL: {
+            if (vm->sp + 3 >= STACK_CAP)
+                return TRAP_STACK_OVERFLOW;
+
+            int32_t addr = FETCH(int32_t);
+            int32_t num_args = FETCH(int32_t);
+
+            push(vm, value_from_int(num_args));
+            push(vm, value_from_int(vm->fp));
+            push(vm, value_from_int(vm->ip));
+
+            vm->fp = vm->sp;
+            vm->ip = addr;
+
+            return TRAP_OK;
+        }
+        case INS_RET: {
+            if (vm->sp - 3 < 0)
+                return TRAP_STACK_UNDERFLOW;
+
+            value_t ret_val = vm->stack[vm->sp];
+
+            vm->sp = vm->fp;
+
+            vm->ip = value_as_int(pop(vm));
+            vm->fp = value_as_int(pop(vm));
+
+            int32_t num_args = value_as_int(pop(vm));
+
+            if (vm->sp - num_args < 0)
+                return TRAP_STACK_UNDERFLOW;
+            
+            for (int32_t i = 0; i < num_args; i++)
+                pop(vm);
+
+            push(vm, ret_val);
 
             return TRAP_OK;
         }

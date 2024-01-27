@@ -1,0 +1,53 @@
+[
+  {
+    "arguments": [
+      "/usr/sbin/clang",
+      "-ggdb",
+      "-Wall",
+      "-Wextra",
+      "-O3",
+      "-c",
+      "-I./include/",
+      "-o",
+      "main.o",
+      "src/main.c"
+    ],
+    "directory": "/home/freedbytes/programming/noice/vm",
+    "file": "/home/freedbytes/programming/noice/vm/src/main.c",
+    "output": "/home/freedbytes/programming/noice/vm/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/sbin/clang",
+      "-ggdb",
+      "-Wall",
+      "-Wextra",
+      "-O3",
+      "-c",
+      "-I./include/",
+      "-o",
+      "value.o",
+      "src/value.c"
+    ],
+    "directory": "/home/freedbytes/programming/noice/vm",
+    "file": "/home/freedbytes/programming/noice/vm/src/value.c",
+    "output": "/home/freedbytes/programming/noice/vm/value.o"
+  },
+  {
+    "arguments": [
+      "/usr/sbin/clang",
+      "-ggdb",
+      "-Wall",
+      "-Wextra",
+      "-O3",
+      "-c",
+      "-I./include/",
+      "-o",
+      "vm.o",
+      "src/vm.c"
+    ],
+    "directory": "/home/freedbytes/programming/noice/vm",
+    "file": "/home/freedbytes/programming/noice/vm/src/vm.c",
+    "output": "/home/freedbytes/programming/noice/vm/vm.o"
+  }
+]

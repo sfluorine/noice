@@ -1,2 +1,5 @@
+.cache
+
 *.o
-noicevm
+libnoice.a
+tb
