@@ -259,6 +259,16 @@ void npb_ret(npb_t* pb)
     pb->program[pb->program_len++] = INS_RET;
 }
 
+void npb_loadarg(npb_t* pb, int32_t n)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_LOADARG;
+
+    memcpy(pb->program + pb->program_len, &n, sizeof(n));
+    pb->program_len += sizeof(n);
+}
+
 #define FETCH(__type)                                           \
     ({                                                          \
         __type value = 0;                                       \
@@ -383,7 +393,7 @@ ntrap_t evaluate(noice_t* vm)
 
             int32_t offset = FETCH(int32_t);
 
-            push(vm, vm->stack[vm->sp - offset]);
+            push(vm, vm->stack[offset]);
             return TRAP_OK;
         }
         case INS_PRINT: {
@@ -458,13 +468,21 @@ ntrap_t evaluate(noice_t* vm)
 
             int32_t num_args = value_as_int(pop(vm));
 
-            if (vm->sp - num_args < 0)
-                return TRAP_STACK_UNDERFLOW;
-            
             for (int32_t i = 0; i < num_args; i++)
                 pop(vm);
 
             push(vm, ret_val);
+
+            return TRAP_OK;
+        }
+        case INS_LOADARG: {
+            if (vm->sp >= STACK_CAP)
+                return TRAP_STACK_OVERFLOW;
+
+            int32_t n = FETCH(int32_t);
+            int32_t num_args = vm->stack[vm->fp - 2];
+
+            push(vm, vm->stack[vm->fp - 2 - num_args + n]);
 
             return TRAP_OK;
         }

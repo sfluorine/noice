@@ -17,9 +17,6 @@ typedef int64_t value_t;
 
 #define INT_MASK        0xfffa000000000000
 
-#define IS_DOUBLE(v)    ((v & NANISH) != NANISH)
-#define IS_INT(v)       ((v & INT_MASK) == INT_MASK)
-
 value_kind_t value_get_type(value_t value);
 
 value_t value_from_double(double value);

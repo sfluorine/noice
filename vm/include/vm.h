@@ -42,6 +42,7 @@ void npb_br(npb_t* pb, int32_t addr);
 void npb_brit(npb_t* pb, int32_t addr);
 void npb_call(npb_t* pb, int32_t addr, int32_t num_args);
 void npb_ret(npb_t* pb);
+void npb_loadarg(npb_t* pb, int32_t n);
 
 #define STACK_CAP 1024
 
@@ -84,6 +85,7 @@ typedef enum {
     INS_BRIT,
     INS_CALL,
     INS_RET,
+    INS_LOADARG,
 } ninstruction_t;
 
 typedef struct {

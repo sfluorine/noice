@@ -5,23 +5,19 @@ int main()
     npb_t pb;
     npb_init(&pb);
 
-    npb_dpush(&pb, 0.0);
+    npb_loadarg(&pb, 0);
+    npb_ret(&pb);
 
-    int32_t start_loop = pb.program_len;
+    int32_t start = pb.program_len;
 
-    npb_dpush(&pb, 0.00001);
-    npb_dadd(&pb);
-    npb_dup(&pb, 0);
-    npb_dup(&pb, 0);
+    npb_ipush(&pb, 69);
+    npb_call(&pb, 0, 1);
     npb_print(&pb);
-    npb_dpush(&pb, 69.420);
-    npb_dlt(&pb);
-    npb_brit(&pb, start_loop);
     npb_halt(&pb);
 
     noice_t vm;
     noice_init(&vm);
-    noice_load_program(&vm, pb.program, pb.program_len, 0);
+    noice_load_program(&vm, pb.program, pb.program_len, start);
     noice_run(&vm);
 
     npb_free(&pb);

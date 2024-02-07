@@ -1,6 +1,9 @@
 #include "value.h"
 #include <assert.h>
 
+#define IS_DOUBLE(v)    ((v & NANISH) != NANISH)
+#define IS_INT(v)       ((v & INT_MASK) == INT_MASK)
+
 value_kind_t value_get_type(value_t value)
 {
     if (IS_INT(value)) {
