@@ -224,7 +224,7 @@ void codegen_topdecl(npb_t* pb, topdecl_t* topdecl)
             sp_offset = start_sp;
 
             if (strncmp(fun->name.start, "main", fun->name.length) != 0) {
-                sp_offset -= 3;
+                sp_offset -= 3 + fun->args_len;
             }
         } break;
     }

@@ -1,0 +1,15 @@
+fun add(x, y)
+{
+    return x + y;
+}
+
+fun something_interesting(hehe, nice)
+{
+    return add(hehe, nice) - add(nice, hehe);
+}
+
+fun main()
+{
+    let result = something_interesting(34, 35);
+    print(result);
+}
