@@ -17,6 +17,7 @@ void npb_ipush(npb_t* pb, int32_t value);
 void npb_dpush(npb_t* pb, double value);
 void npb_pop(npb_t* pb);
 void npb_dup(npb_t* pb, int32_t offset);
+void npb_set(npb_t* pb, int32_t offset);
 void npb_print(npb_t* pb);
 void npb_iadd(npb_t* pb);
 void npb_isub(npb_t* pb);
@@ -42,6 +43,7 @@ void npb_br(npb_t* pb, int32_t addr);
 void npb_brit(npb_t* pb, int32_t addr);
 void npb_call(npb_t* pb, int32_t addr, int32_t num_args);
 void npb_ret(npb_t* pb);
+void npb_retvoid(npb_t* pb);
 void npb_loadarg(npb_t* pb, int32_t n);
 
 #define STACK_CAP 1024
@@ -60,6 +62,7 @@ typedef enum {
     INS_DPUSH,
     INS_POP,
     INS_DUP,
+    INS_SET,
     INS_PRINT,
     INS_IADD,
     INS_ISUB,
@@ -85,6 +88,7 @@ typedef enum {
     INS_BRIT,
     INS_CALL,
     INS_RET,
+    INS_RETVOID,
     INS_LOADARG,
 } ninstruction_t;
 

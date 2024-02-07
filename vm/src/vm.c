@@ -72,6 +72,16 @@ void npb_dup(npb_t* pb, int32_t offset)
     pb->program_len += sizeof(offset);
 }
 
+void npb_set(npb_t* pb, int32_t offset)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_SET;
+
+    memcpy(pb->program + pb->program_len, &offset, sizeof(offset));
+    pb->program_len += sizeof(offset);
+}
+
 void npb_print(npb_t* pb)
 {
     RESIZE_IF_NEEDED();
@@ -396,6 +406,15 @@ ntrap_t evaluate(noice_t* vm)
             push(vm, vm->stack[offset]);
             return TRAP_OK;
         }
+        case INS_SET: {
+            if (vm->sp < 0)
+                return TRAP_STACK_UNDERFLOW;
+
+            int32_t offset = FETCH(int32_t);
+            vm->stack[offset] = pop(vm);
+
+            return TRAP_OK;
+        }
         case INS_PRINT: {
             if (vm->sp < 0)
                 return TRAP_STACK_UNDERFLOW;
@@ -472,6 +491,22 @@ ntrap_t evaluate(noice_t* vm)
                 pop(vm);
 
             push(vm, ret_val);
+
+            return TRAP_OK;
+        }
+        case INS_RETVOID: {
+            if (vm->sp - 3 < 0)
+                return TRAP_STACK_UNDERFLOW;
+
+            vm->sp = vm->fp;
+
+            vm->ip = value_as_int(pop(vm));
+            vm->fp = value_as_int(pop(vm));
+
+            int32_t num_args = value_as_int(pop(vm));
+
+            for (int32_t i = 0; i < num_args; i++)
+                pop(vm);
 
             return TRAP_OK;
         }
