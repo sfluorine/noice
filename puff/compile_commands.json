@@ -1,0 +1,104 @@
+[
+  {
+    "arguments": [
+      "/usr/sbin/clang",
+      "-ggdb",
+      "-Wall",
+      "-Wextra",
+      "-O3",
+      "-c",
+      "-I../vm/include/",
+      "-o",
+      "main.o",
+      "src/main.c"
+    ],
+    "directory": "/home/freedbytes/programming/noice/puff",
+    "file": "/home/freedbytes/programming/noice/puff/src/main.c",
+    "output": "/home/freedbytes/programming/noice/puff/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/sbin/clang",
+      "-ggdb",
+      "-Wall",
+      "-Wextra",
+      "-O3",
+      "-c",
+      "-I../vm/include/",
+      "-o",
+      "token.o",
+      "src/token.c"
+    ],
+    "directory": "/home/freedbytes/programming/noice/puff",
+    "file": "/home/freedbytes/programming/noice/puff/src/token.c",
+    "output": "/home/freedbytes/programming/noice/puff/token.o"
+  },
+  {
+    "arguments": [
+      "/usr/sbin/clang",
+      "-ggdb",
+      "-Wall",
+      "-Wextra",
+      "-O3",
+      "-c",
+      "-I../vm/include/",
+      "-o",
+      "ast.o",
+      "src/ast.c"
+    ],
+    "directory": "/home/freedbytes/programming/noice/puff",
+    "file": "/home/freedbytes/programming/noice/puff/src/ast.c",
+    "output": "/home/freedbytes/programming/noice/puff/ast.o"
+  },
+  {
+    "arguments": [
+      "/usr/sbin/clang",
+      "-ggdb",
+      "-Wall",
+      "-Wextra",
+      "-O3",
+      "-c",
+      "-I../vm/include/",
+      "-o",
+      "lexer.o",
+      "src/lexer.c"
+    ],
+    "directory": "/home/freedbytes/programming/noice/puff",
+    "file": "/home/freedbytes/programming/noice/puff/src/lexer.c",
+    "output": "/home/freedbytes/programming/noice/puff/lexer.o"
+  },
+  {
+    "arguments": [
+      "/usr/sbin/clang",
+      "-ggdb",
+      "-Wall",
+      "-Wextra",
+      "-O3",
+      "-c",
+      "-I../vm/include/",
+      "-o",
+      "codegen.o",
+      "src/codegen.c"
+    ],
+    "directory": "/home/freedbytes/programming/noice/puff",
+    "file": "/home/freedbytes/programming/noice/puff/src/codegen.c",
+    "output": "/home/freedbytes/programming/noice/puff/codegen.o"
+  },
+  {
+    "arguments": [
+      "/usr/sbin/clang",
+      "-ggdb",
+      "-Wall",
+      "-Wextra",
+      "-O3",
+      "-c",
+      "-I../vm/include/",
+      "-o",
+      "parser.o",
+      "src/parser.c"
+    ],
+    "directory": "/home/freedbytes/programming/noice/puff",
+    "file": "/home/freedbytes/programming/noice/puff/src/parser.c",
+    "output": "/home/freedbytes/programming/noice/puff/parser.o"
+  }
+]

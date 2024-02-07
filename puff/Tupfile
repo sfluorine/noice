@@ -1,0 +1,5 @@
+INCLUDE_PATH += -I../vm/include/
+STATIC_LIBRARY_PATH += ../vm/libnoice.a
+
+: foreach src/*.c |> clang -ggdb -Wall -Wextra -O3 -c $(INCLUDE_PATH) %f -o %o |> %B.o
+: *.o $(STATIC_LIBRARY_PATH) |> clang %f -o %o |> puff
