@@ -2,8 +2,10 @@
 
 typedef enum {
     TOK_LET,
+    TOK_SET,
     TOK_FUN,
     TOK_RETURN,
+    TOK_IF,
     TOK_IDENTIFIER,
     TOK_NUMBER,
     TOK_PLUS,
@@ -17,6 +19,8 @@ typedef enum {
     TOK_EQUAL,
     TOK_COMMA,
     TOK_SEMICOLON,
+    TOK_EQUALEQUAL,
+    TOK_NOTEQUAL,
     TOK_EOF,
     TOK_ERROR,
 } token_kind_t;

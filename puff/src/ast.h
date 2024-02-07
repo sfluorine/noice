@@ -61,6 +61,8 @@ typedef enum {
     STMT_VARDECL,
     STMT_EXPR,
     STMT_RETURN,
+    STMT_VARASSIGN,
+    STMT_IF,
 } stmt_kind_t;
 
 typedef struct {
@@ -89,6 +91,33 @@ typedef struct {
 
 stmt_t* stmt_return_make(expr_t* expr);
 
+typedef struct {
+    stmt_t __header;
+    token_t ident;
+    expr_t* expr;
+} stmt_varassign_t;
+
+stmt_t* stmt_varassign_make(token_t ident, expr_t* expr);
+
+typedef struct block_t block_t;
+
+struct block_t {
+    stmt_t* stmt;
+    block_t* next;
+};
+
+block_t* block_make(stmt_t* stmt);
+void block_free(block_t* block);
+
+typedef struct {
+    stmt_t __header;
+    expr_t* condition;
+    block_t* true;
+    block_t* false;
+} stmt_if_t;
+
+stmt_t* stmt_if_make(expr_t* condition, block_t* true, block_t* false);
+
 void stmt_free(stmt_t* stmt);
 
 typedef enum {
@@ -99,22 +128,12 @@ typedef struct {
     topdecl_kind_t kind;
 } topdecl_t;
 
-typedef struct fun_body_t fun_body_t;
-
-struct fun_body_t {
-    stmt_t* stmt;
-    fun_body_t* next;
-};
-
-fun_body_t* fun_body_make(stmt_t* stmt);
-void fun_body_free(fun_body_t* funbody);
-
 typedef struct {
     topdecl_t __header;
     token_t name;
     token_t args[10];
     int args_len;
-    fun_body_t* funbody;
+    block_t* funbody;
 } topdecl_fun_t;
 
 topdecl_t* topdecl_fun_make(token_t name);

@@ -30,7 +30,7 @@ static int functions_len = 0;
 static int locals_lookup(token_t ident)
 {
     for (int i = 0; i < locals_len; i++) {
-        if (strncmp(ident.start, locals[i].token.start, ident.length) == 0) {
+        if (strncmp(ident.start, locals[i].token.start, locals[i].token.length) == 0) {
             return i;
         }
     }
@@ -41,7 +41,7 @@ static int locals_lookup(token_t ident)
 static int functions_lookup(token_t name)
 {
     for (int i = 0; i < functions_len; i++) {
-        if (strncmp(name.start, functions[i].fun->name.start, name.length) == 0) {
+        if (strncmp(name.start, functions[i].fun->name.start, functions[i].fun->name.length) == 0) {
             return i;
         }
     }
@@ -103,6 +103,8 @@ void codegen_expr(npb_t* pb, expr_t* expr)
                 case '-': npb_dsub(pb); break;
                 case '*': npb_dmul(pb); break;
                 case '/': npb_ddiv(pb); break;
+                case '=': npb_deq(pb);  break;
+                case '!': npb_dneq(pb); break;
                 default: {
                     fprintf(stderr, "ERROR: unknown binary op: '%c'\n", binary->op);
                     exit(1);
@@ -144,6 +146,21 @@ void codegen_expr(npb_t* pb, expr_t* expr)
     }
 }
 
+static void codegen_block(npb_t* pb, block_t* block)
+{
+    if (!block)
+        return;
+
+    codegen_stmt(pb, block->stmt);
+    codegen_block(pb, block->next);
+}
+
+static void patch_jump_address(npb_t* pb, int32_t offset, int32_t addr)
+{
+    uint8_t* unpatched_addr = pb->program + offset + 1;
+    memcpy(unpatched_addr, &addr, sizeof(addr));
+}
+
 void codegen_stmt(npb_t* pb, stmt_t* stmt)
 {
     assert(initialized);
@@ -153,7 +170,7 @@ void codegen_stmt(npb_t* pb, stmt_t* stmt)
             stmt_vardecl_t* vardecl = (stmt_vardecl_t*)stmt;
 
             if (locals_lookup(vardecl->ident) != -1) {
-                fprintf(stderr, "ERROR: symbol '%.*s' already exist\n", vardecl->ident.length, vardecl->ident.start);
+                fprintf(stderr, "ERROR: variable '%.*s' already exist\n", vardecl->ident.length, vardecl->ident.start);
                 exit(1);
             }
 
@@ -175,16 +192,40 @@ void codegen_stmt(npb_t* pb, stmt_t* stmt)
             codegen_expr(pb, ret->expr);
             npb_ret(pb);
         } break;
+        case STMT_VARASSIGN: {
+            stmt_varassign_t* assign = (stmt_varassign_t*)stmt;
+
+            int index = locals_lookup(assign->ident);
+            if (index == -1) {
+                fprintf(stderr, "ERROR: variable '%.*s' does not exist\n", assign->ident.length, assign->ident.start);
+                exit(1);
+            }
+
+            codegen_expr(pb, assign->expr);
+            npb_set(pb, locals[index].sp_offset);
+        } break;
+        case STMT_IF: {
+            stmt_if_t* sif = (stmt_if_t*)stmt;
+
+            codegen_expr(pb, sif->condition);
+            int32_t true_patch_addr = pb->program_len;
+            npb_brit(pb, -1);
+
+            int current_locals_len = locals_len;
+            codegen_block(pb, sif->false);
+            locals_len = current_locals_len;
+
+            int32_t false_exit_patch_addr = pb->program_len;
+            npb_br(pb, -1);
+
+            int32_t true_block = pb->program_len;
+            codegen_block(pb, sif->true);
+            locals_len = current_locals_len;
+
+            patch_jump_address(pb, true_patch_addr, true_block);
+            patch_jump_address(pb, false_exit_patch_addr, pb->program_len);
+        } break;
     }
-}
-
-static void codegen_funbody(npb_t* pb, fun_body_t* funbody)
-{
-    if (!funbody)
-        return;
-
-    codegen_stmt(pb, funbody->stmt);
-    codegen_funbody(pb, funbody->next);
 }
 
 void codegen_topdecl(npb_t* pb, topdecl_t* topdecl)
@@ -220,7 +261,7 @@ void codegen_topdecl(npb_t* pb, topdecl_t* topdecl)
             }
 
             int start_sp = sp_offset;
-            codegen_funbody(pb, fun->funbody);
+            codegen_block(pb, fun->funbody);
             sp_offset = start_sp;
 
             if (strncmp(fun->name.start, "main", fun->name.length) != 0) {
@@ -248,9 +289,8 @@ int codegen_program(npb_t* pb, program_t* program)
     codegen_program_internal(pb, program);
     int main_index = functions_lookup((token_t) { .length = 4, .start = "main" });
 
-    if (main_index != -1) {
+    if (main_index != -1)
         return functions[main_index].ip;
-    }
 
     return -1;
 }

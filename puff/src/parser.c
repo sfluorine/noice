@@ -109,10 +109,8 @@ static expr_t* parse_factor()
     return lhs;
 }
 
-expr_t* parse_expression()
+static expr_t* parse_term()
 {
-    assert(initialized);
-
     expr_t* lhs = parse_factor();
 
     while (expect(TOK_PLUS) || expect(TOK_MINUS)) {
@@ -125,6 +123,45 @@ expr_t* parse_expression()
     }
 
     return lhs;
+}
+
+expr_t* parse_expression()
+{
+    assert(initialized);
+
+    expr_t* lhs = parse_term();
+
+    while (expect(TOK_EQUALEQUAL) || expect(TOK_NOTEQUAL)) {
+        char op = expect(TOK_EQUALEQUAL) ? '=' : '!';
+        advance();
+
+        expr_t* rhs = parse_term();
+        lhs = expr_binary_make(lhs, op, rhs);
+    }
+
+    return lhs;
+}
+
+static block_t* parse_block()
+{
+    match(TOK_LCURLYBRACE);
+
+    block_t* block = NULL;
+    block_t* ptr = NULL;
+
+    while (!expect(TOK_RCURLYBRACE)) {
+        if (!block) {
+            block = block_make(parse_statement());
+            ptr = block;
+        } else {
+            ptr->next = block_make(parse_statement());
+            ptr = ptr->next;
+        }
+    }
+
+    match(TOK_RCURLYBRACE);
+
+    return block;
 }
 
 stmt_t* parse_statement()
@@ -140,10 +177,31 @@ stmt_t* parse_statement()
         expr_t* expr = parse_expression();
 
         return stmt_vardecl_make(ident, expr);
+    } else if (expect(TOK_SET)) {
+        advance();
+
+        token_t ident = current;
+        match(TOK_IDENTIFIER);
+
+        match(TOK_EQUAL);
+
+        expr_t* expr = parse_expression();
+
+        return stmt_varassign_make(ident, expr);
     } else if (expect(TOK_RETURN)) {
         advance();
 
         return stmt_return_make(parse_expression());
+    } else if (expect(TOK_IF)) {
+        advance();
+
+        match(TOK_LPAREN);
+        expr_t* condition = parse_expression();
+        match(TOK_RPAREN);
+
+        block_t* true = parse_block();
+
+        return stmt_if_make(condition, true, NULL);
     }
 
     return stmt_expr_make(parse_expression());
@@ -163,9 +221,8 @@ topdecl_t* parse_topdecl()
 
         int first = 1;
         while (fun->args_len < 10 && !expect(TOK_RPAREN)) {
-            if (!first) {
+            if (!first)
                 match(TOK_COMMA);
-            }
 
             token_t arg = current;
             match(TOK_IDENTIFIER);
@@ -176,26 +233,7 @@ topdecl_t* parse_topdecl()
 
         match(TOK_RPAREN);
 
-        match(TOK_LCURLYBRACE);
-
-        fun_body_t* funbody = NULL;
-        fun_body_t* ptr = NULL;
-
-        while (!expect(TOK_RCURLYBRACE)) {
-            if (!funbody) {
-                funbody = fun_body_make(parse_statement());
-                ptr = funbody;
-            } else {
-                ptr->next = fun_body_make(parse_statement());
-                ptr = ptr->next;
-            }
-
-            match(TOK_SEMICOLON);
-        }
-
-        fun->funbody = funbody;
-
-        match(TOK_RCURLYBRACE);
+        fun->funbody = parse_block();
 
         return (topdecl_t*)fun;
     }

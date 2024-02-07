@@ -1,6 +1,7 @@
 #include "ast.h"
 
 #include <assert.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -134,6 +135,46 @@ stmt_t* stmt_return_make(expr_t* expr)
     return (stmt_t*)stmt;
 }
 
+stmt_t* stmt_varassign_make(token_t ident, expr_t* expr)
+{
+    stmt_varassign_t* stmt = malloc(sizeof(*stmt));
+    stmt->__header = stmt_header_make(STMT_VARASSIGN);
+    stmt->ident = ident;
+    stmt->expr = expr;
+
+    return (stmt_t*)stmt;
+}
+
+block_t* block_make(stmt_t* stmt)
+{
+    block_t* block = malloc(sizeof(*block));
+    block->stmt = stmt;
+    block->next = NULL;
+
+    return block;
+}
+
+void block_free(block_t* block)
+{
+    if (!block)
+        return;
+
+    block_free(block->next);
+    stmt_free(block->stmt);
+    free(block);
+}
+
+stmt_t* stmt_if_make(expr_t* condition, block_t* true, block_t* false)
+{
+    stmt_if_t* stmt = malloc(sizeof(*stmt));
+    stmt->__header = stmt_header_make(STMT_IF);
+    stmt->condition = condition;
+    stmt->true = true;
+    stmt->false = false;
+
+    return (stmt_t*)stmt;
+}
+
 void stmt_free(stmt_t* stmt)
 {
     switch (stmt->kind) {
@@ -152,31 +193,24 @@ void stmt_free(stmt_t* stmt)
             expr_free(s->expr);
             free(s);
         } break;
+        case STMT_VARASSIGN: {
+            stmt_varassign_t* s = (stmt_varassign_t*)stmt;
+            expr_free(s->expr);
+            free(s);
+        } break;
+        case STMT_IF: {
+            stmt_if_t* s = (stmt_if_t*)stmt;
+            expr_free(s->condition);
+            block_free(s->true);
+            block_free(s->false);
+            free(s);
+        } break;
     }
 }
 
 static topdecl_t topdecl_make_header(topdecl_kind_t kind)
 {
     return (topdecl_t) { .kind = kind };
-}
-
-fun_body_t* fun_body_make(stmt_t* stmt)
-{
-    fun_body_t* funbody = malloc(sizeof(*funbody));
-    funbody->stmt = stmt;
-    funbody->next = NULL;
-
-    return funbody;
-}
-
-void fun_body_free(fun_body_t* funbody)
-{
-    if (!funbody)
-        return;
-
-    fun_body_free(funbody->next);
-    stmt_free(funbody->stmt);
-    free(funbody);
 }
 
 topdecl_t* topdecl_fun_make(token_t name)
@@ -205,7 +239,7 @@ void topdecl_free(topdecl_t* topdecl)
     switch (topdecl->kind) {
         case TOPDECL_FUN: {
             topdecl_fun_t* f = (topdecl_fun_t*)topdecl;
-            fun_body_free(f->funbody);
+            block_free(f->funbody);
             free(f);
         } break;
     }

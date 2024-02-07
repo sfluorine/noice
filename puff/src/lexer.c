@@ -63,9 +63,25 @@ token_t get_token()
         case ')':
             advance();
             return make_token(TOK_RPAREN, start, 1);
+        case '!':
+            advance();
+
+            if (current() != '=') {
+                advance();
+                return make_token(TOK_ERROR, start, 2);
+            }
+
+            advance();
+            return make_token(TOK_NOTEQUAL, start, 2);
         case '=':
             advance();
-            return make_token(TOK_EQUAL, start, 1);
+
+            if (current() != '=') {
+                return make_token(TOK_EQUAL, start, 1);
+            }
+
+            advance();
+            return make_token(TOK_EQUALEQUAL, start, 2);
         case ';':
             advance();
             return make_token(TOK_SEMICOLON, start, 1);
@@ -118,11 +134,17 @@ token_t get_token()
         if (strncmp(start, "let", length) == 0)
             return make_token(TOK_LET, start, length);
 
+        if (strncmp(start, "set", length) == 0)
+            return make_token(TOK_SET, start, length);
+
         if (strncmp(start, "fun", length) == 0)
             return make_token(TOK_FUN, start, length);
 
         if (strncmp(start, "return", length) == 0)
             return make_token(TOK_RETURN, start, length);
+
+        if (strncmp(start, "if", length) == 0)
+            return make_token(TOK_IF, start, length);
 
         return make_token(TOK_IDENTIFIER, start, length);
     }
