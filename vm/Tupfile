@@ -1,7 +1,7 @@
 INCLUDE_PATH += -I./include/
 
-: foreach src/*.c |> clang -ggdb -Wall -Wextra -O3 -c $(INCLUDE_PATH) %f -o %o |> %B.o
+: foreach src/*.c |> clang -ggdb -Wall -Wextra -c $(INCLUDE_PATH) %f -o %o |> %B.o
 : *.o |> ar rcs %o %f |> libnoice.a
 
-: testbed/main.c |> clang -ggdb -Wall -Wextra -O3 -c $(INCLUDE_PATH) %f -o %o |> %B.o
+: testbed/main.c |> clang -ggdb -Wall -Wextra -c $(INCLUDE_PATH) %f -o %o |> %B.o
 : main.o libnoice.a |> clang %f -o %o |> tb
