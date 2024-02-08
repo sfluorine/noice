@@ -269,6 +269,13 @@ void npb_ret(npb_t* pb)
     pb->program[pb->program_len++] = INS_RET;
 }
 
+void npb_retvoid(npb_t* pb)
+{
+    RESIZE_IF_NEEDED();
+
+    pb->program[pb->program_len++] = INS_RETVOID;
+}
+
 void npb_loadarg(npb_t* pb, int32_t n)
 {
     RESIZE_IF_NEEDED();
