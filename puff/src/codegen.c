@@ -97,22 +97,22 @@ static type_kind_t typecheck_expr(expr_t* expr)
             type_kind_t lhs = typecheck_expr(binary->lhs);
             type_kind_t rhs = typecheck_expr(binary->lhs);
 
+            if (lhs != rhs) {
+                fprintf(stderr, "ERROR: mismatched type for binary op: '%c'\n", binary->op);
+                exit(1);
+            }
+
             switch (binary->op) {
                 case '+': break;
                 case '-': break;
                 case '*': break;
                 case '/': break;
-                case '=': break;
-                case '!': break;
+                case '=': return TYPE_BUILTIN_INT;
+                case '!': return TYPE_BUILTIN_INT;
                 default: {
                     fprintf(stderr, "ERROR: unknown binary op: '%c'\n", binary->op);
                     exit(1);
                 }
-            }
-
-            if (lhs != rhs) {
-                fprintf(stderr, "ERROR: mismatched type for binary op: '%c'\n", binary->op);
-                exit(1);
             }
 
             return lhs;
@@ -374,7 +374,6 @@ void codegen_stmt(npb_t* pb, stmt_t* stmt, topdecl_fun_t* fun)
             }
 
             type_kind_t expr_type = typecheck_expr(vardecl->expr);
-
 
             if (expr_type != variable_type) {
                 fprintf(stderr, "ERROR: variable declared as %d but the expression type is %d\n", variable_type, expr_type);
