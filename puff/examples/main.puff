@@ -1,0 +1,10 @@
+fun main(): void {
+    let x: int = 34
+    let y: int = 69
+
+    if (0) {
+        return print(69.420)
+    }
+
+    print(34 + 35)
+}

@@ -19,10 +19,11 @@ expr_t* expr_ident_make(token_t ident)
     return (expr_t*)expr;
 }
 
-expr_t* expr_num_make(double number)
+expr_t* expr_num_make(expr_num_kind_t kind, token_t number)
 {
     expr_num_t* expr = malloc(sizeof(*expr));
     expr->__header = expr_header_make(EXPR_NUMBER);
+    expr->kind = kind;
     expr->number = number;
 
     return (expr_t*)expr;
@@ -107,11 +108,12 @@ static stmt_t stmt_header_make(stmt_kind_t kind)
     return (stmt_t) { .kind = kind };
 }
 
-stmt_t* stmt_vardecl_make(token_t ident, expr_t* expr)
+stmt_t* stmt_vardecl_make(token_t ident, token_t type, expr_t* expr)
 {
     stmt_vardecl_t* stmt = malloc(sizeof(*stmt));
     stmt->__header = stmt_header_make(STMT_VARDECL);
     stmt->ident = ident;
+    stmt->type = type;
     stmt->expr = expr;
 
     return (stmt_t*)stmt;
@@ -224,7 +226,7 @@ topdecl_t* topdecl_fun_make(token_t name)
     return (topdecl_t*)fun;
 }
 
-void topdecl_fun_push_arg(topdecl_fun_t* fun, token_t arg)
+void topdecl_fun_push_arg(topdecl_fun_t* fun, parameter_t arg)
 {
     if (fun->args_len >= 10) {
         fprintf(stderr, "ERROR: function arguments exceeded limit\n");

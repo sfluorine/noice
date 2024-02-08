@@ -82,6 +82,9 @@ token_t get_token()
 
             advance();
             return make_token(TOK_EQUALEQUAL, start, 2);
+        case ':':
+            advance();
+            return make_token(TOK_COLON, start, 1);
         case ';':
             advance();
             return make_token(TOK_SEMICOLON, start, 1);
@@ -118,10 +121,10 @@ token_t get_token()
                 return make_token(TOK_ERROR, start, length);
             }
 
-            return make_token(TOK_NUMBER, start, length + mantissa_length);
+            return make_token(TOK_DOUBLELITERAL, start, length + mantissa_length);
         }
 
-        return make_token(TOK_NUMBER, start, length);
+        return make_token(TOK_INTLITERAL, start, length);
     }
 
     if (isalpha(current()) || current() == '_') {
@@ -130,6 +133,15 @@ token_t get_token()
             length++;
             advance();
         } while (current() && (isalnum(current()) || current() == '_'));
+
+        if (strncmp(start, "int", length) == 0)
+            return make_token(TOK_INT, start, length);
+
+        if (strncmp(start, "double", length) == 0)
+            return make_token(TOK_DOUBLE, start, length);
+
+        if (strncmp(start, "void", length) == 0)
+            return make_token(TOK_VOID, start, length);
 
         if (strncmp(start, "let", length) == 0)
             return make_token(TOK_LET, start, length);

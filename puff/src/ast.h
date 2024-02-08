@@ -21,12 +21,18 @@ typedef struct {
 
 expr_t* expr_ident_make(token_t ident);
 
+typedef enum {
+    EXPR_NUM_INT,
+    EXPR_NUM_DOUBLE,
+} expr_num_kind_t;
+
 typedef struct {
     expr_t __header;
-    double number;
+    expr_num_kind_t kind;
+    token_t number;
 } expr_num_t;
 
-expr_t* expr_num_make(double number);
+expr_t* expr_num_make(expr_num_kind_t kind, token_t number);
 
 typedef struct {
     expr_t __header;
@@ -72,10 +78,11 @@ typedef struct {
 typedef struct {
     stmt_t __header;
     token_t ident;
+    token_t type;
     expr_t* expr;
 } stmt_vardecl_t;
 
-stmt_t* stmt_vardecl_make(token_t ident, expr_t* expr);
+stmt_t* stmt_vardecl_make(token_t ident, token_t type, expr_t* expr);
 
 typedef struct {
     stmt_t __header;
@@ -129,15 +136,21 @@ typedef struct {
 } topdecl_t;
 
 typedef struct {
+    token_t arg;
+    token_t type;
+} parameter_t;
+
+typedef struct {
     topdecl_t __header;
     token_t name;
-    token_t args[10];
+    parameter_t args[10];
     int args_len;
+    token_t type;
     block_t* funbody;
 } topdecl_fun_t;
 
 topdecl_t* topdecl_fun_make(token_t name);
-void topdecl_fun_push_arg(topdecl_fun_t* fun, token_t arg);
+void topdecl_fun_push_arg(topdecl_fun_t* fun, parameter_t arg);
 
 void topdecl_free(topdecl_t* topdecl);
 

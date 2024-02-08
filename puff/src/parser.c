@@ -53,11 +53,13 @@ static expr_t* parse_primary()
         match(TOK_RPAREN);
 
         return expr;
-    } else if (expect(TOK_NUMBER)) {
+    } else if (expect(TOK_INTLITERAL) || expect(TOK_DOUBLELITERAL)) {
+        expr_num_kind_t kind = expect(TOK_INTLITERAL) ? EXPR_NUM_INT : EXPR_NUM_DOUBLE;
+
         token_t number = current;
         advance();
 
-        return expr_num_make(strtod(number.start, NULL));
+        return expr_num_make(kind, number);
     } else if (expect(TOK_IDENTIFIER)) {
         token_t ident = current;
         advance();
@@ -164,6 +166,19 @@ static block_t* parse_block()
     return block;
 }
 
+static token_t parse_type()
+{
+    if (expect(TOK_INT) || expect(TOK_DOUBLE) || expect(TOK_VOID)) {
+        token_t type = current;
+        advance();
+
+        return type;
+    }
+
+    fprintf(stderr, "ERROR: expected type after colon\n");
+    exit(1);
+}
+
 stmt_t* parse_statement()
 {
     if (expect(TOK_LET)) {
@@ -172,11 +187,15 @@ stmt_t* parse_statement()
         token_t ident = current;
         match(TOK_IDENTIFIER);
 
+        match(TOK_COLON);
+
+        token_t type = parse_type();
+
         match(TOK_EQUAL);
 
         expr_t* expr = parse_expression();
 
-        return stmt_vardecl_make(ident, expr);
+        return stmt_vardecl_make(ident, type, expr);
     } else if (expect(TOK_SET)) {
         advance();
 
@@ -190,6 +209,12 @@ stmt_t* parse_statement()
         return stmt_varassign_make(ident, expr);
     } else if (expect(TOK_RETURN)) {
         advance();
+
+        if (expect(TOK_VOID)) {
+            advance();
+
+            return stmt_return_make(NULL);
+        }
 
         return stmt_return_make(parse_expression());
     } else if (expect(TOK_IF)) {
@@ -227,12 +252,21 @@ topdecl_t* parse_topdecl()
             token_t arg = current;
             match(TOK_IDENTIFIER);
 
-            topdecl_fun_push_arg(fun, arg);
+            match(TOK_COLON);
+
+            token_t type = parse_type();
+
+            topdecl_fun_push_arg(fun, (parameter_t) { .arg = arg, .type = type });
             first = 0;
         }
 
         match(TOK_RPAREN);
 
+        match(TOK_COLON);
+
+        token_t type = parse_type();
+
+        fun->type = type;
         fun->funbody = parse_block();
 
         return (topdecl_t*)fun;

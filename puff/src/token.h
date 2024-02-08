@@ -1,13 +1,17 @@
 #pragma once
 
 typedef enum {
+    TOK_INT,
+    TOK_DOUBLE,
+    TOK_VOID,
     TOK_LET,
     TOK_SET,
     TOK_FUN,
     TOK_RETURN,
     TOK_IF,
     TOK_IDENTIFIER,
-    TOK_NUMBER,
+    TOK_INTLITERAL,
+    TOK_DOUBLELITERAL,
     TOK_PLUS,
     TOK_MINUS,
     TOK_STAR,
@@ -18,6 +22,7 @@ typedef enum {
     TOK_RCURLYBRACE,
     TOK_EQUAL,
     TOK_COMMA,
+    TOK_COLON,
     TOK_SEMICOLON,
     TOK_EQUALEQUAL,
     TOK_NOTEQUAL,
